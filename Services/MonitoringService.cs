@@ -152,7 +152,7 @@ class MonitoringService : IHostedService
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                 }
-                if (warningCount >= warningLevels && process.ThreadCount <= 2 || process.ElapsedTime > 10000)
+                if ((warningCount >= warningLevels && process.ThreadCount <= 2) || process.ElapsedTime > 10000)
                 {
                     Console.BackgroundColor = ConsoleColor.DarkRed;
                     Console.ForegroundColor = ConsoleColor.Black;
