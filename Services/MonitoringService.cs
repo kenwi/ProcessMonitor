@@ -11,8 +11,6 @@ class MonitoringService : IHostedService
     int tick = 0;
     readonly int tickInterval = 5, ticksPerUpdate = 15, warningLevels = 5;
     readonly Dictionary<int, long> writtenBytesData = new();
-    readonly Dictionary<int, long> previousData = new();
-    readonly Dictionary<int, long> ageData = new();
     readonly List<int> warnings = new();
     readonly StringBuilder output = new();
 
