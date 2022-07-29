@@ -22,12 +22,3 @@ await Host.CreateDefaultBuilder(Environment.GetCommandLineArgs())
     })
     .Build()
     .RunAsync();
-
-//messageWriter.Write("Monitoring");
-//Enumerable.Range(1, 5)
-//    .ToList()
-//    .ForEach(async page => {
-//        var nodes = await GetOnlineUserNodes("female", page);
-//        var usernames = nodes.Select(n => n.InnerText);
-//        messageWriter.Write($"Online users {page}: {nodes.Length}");
-//    });
