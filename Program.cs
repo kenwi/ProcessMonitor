@@ -12,9 +12,6 @@ await Host.CreateDefaultBuilder(Environment.GetCommandLineArgs())
             .AddCommandLine(Environment.GetCommandLineArgs())
             .Build();
         
-        var streams = new List<Process>();
-        services.AddSingleton(streams);
-
         services.AddSingleton<ProcessService>();
         services.AddSingleton(configuration);
         services.AddScoped<IMessageWriter, MessageWriter>();
