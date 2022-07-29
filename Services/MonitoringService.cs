@@ -5,24 +5,21 @@ using System.Text;
 
 class MonitoringService : IHostedService
 {
-    private Timer? timer;
-    protected readonly IServiceProvider serviceProvider;
-    protected readonly IMessageWriter messageWriter;
-    private readonly ProcessService processService;
+    readonly IMessageWriter messageWriter;
+    readonly ProcessService processService;
 
-    int tickInterval = 5, tick = 0, ticksPerUpdate = 15, warningLevels = 5;
-    Dictionary<int, long> writtenBytesData = new Dictionary<int, long>();
-    Dictionary<int, long> previousData = new Dictionary<int, long>();
-    Dictionary<int, long> ageData = new Dictionary<int, long>();
-    List<int> warnings = new List<int>();
-    StringBuilder output = new StringBuilder();
+    int tick = 0;
+    readonly int tickInterval = 5, ticksPerUpdate = 15, warningLevels = 5;
+    readonly Dictionary<int, long> writtenBytesData = new();
+    readonly Dictionary<int, long> previousData = new();
+    readonly Dictionary<int, long> ageData = new();
+    readonly List<int> warnings = new();
+    readonly StringBuilder output = new();
 
     public MonitoringService(
-        IServiceProvider serviceProvider,
         IMessageWriter messageWriter,
         ProcessService processService)
     {
-        this.serviceProvider = serviceProvider;
         this.messageWriter = messageWriter;
         this.processService = processService;
         messageWriter.Write("MonitoringService Started");
@@ -30,7 +27,7 @@ class MonitoringService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(tickInterval));
+        new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(tickInterval));
         await Task.Delay(0, cancellationToken);
     }
 
@@ -48,7 +45,6 @@ class MonitoringService : IHostedService
             return;
         }
 
-        var stringBuilder = new StringBuilder();
         process.OutputDataReceived += OutputDataReceived;
         process.ErrorDataReceived += (s, e) =>
         {
