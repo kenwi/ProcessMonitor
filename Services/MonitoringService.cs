@@ -1,5 +1,4 @@
-﻿using HtmlAgilityPack;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text;
