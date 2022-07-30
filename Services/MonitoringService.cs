@@ -9,10 +9,11 @@ class MonitoringService : IHostedService
     readonly ProcessService processService;
 
     int tick = 0;
-    readonly int tickInterval = 5, ticksPerUpdate = 15, warningLevels = 5;
+    readonly int tickInterval = 2500, ticksPerUpdate = 15, warningLevels = 5;
     readonly Dictionary<int, long> writtenBytesData = new();
     readonly List<int> warnings = new();
     readonly StringBuilder output = new();
+    Timer? timer;
 
     public MonitoringService(
         IMessageWriter messageWriter,
@@ -25,7 +26,7 @@ class MonitoringService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(tickInterval));
+        timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(tickInterval));
         await Task.Delay(0, cancellationToken);
     }
 
@@ -43,36 +44,13 @@ class MonitoringService : IHostedService
             return;
         }
 
-        process.OutputDataReceived += OutputDataReceived;
-        process.ErrorDataReceived += (s, e) =>
-        {
-
-        };
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        process.WaitForExit();
-        messageWriter.Write($"Tick: {tick++} TicksPerUpdate: {ticksPerUpdate}");
-    }
-
-    private void OutputDataReceived(object sender, DataReceivedEventArgs e)
-    {
-        if (e.Data is not null)
-        {
-            output.AppendLine(e.Data);
-            return;
-        }
-
-        Console.ResetColor();
-        Console.Clear();
-
-        var json = output.ToString();
-        var processes = new List<WMIObject>();
         try
         {
-            var elements = JsonConvert.DeserializeObject<List<WMIObject>>(json);
-            if (elements is not null)
-                processes = elements.Where(p => p.Name is not null && p.Name.Contains("python#"))
-                    .ToList();
+            process.OutputDataReceived += OutputDataReceived;
+            process.ErrorDataReceived += (s, e) => { };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
         }
         catch (Exception)
         {
@@ -80,11 +58,35 @@ class MonitoringService : IHostedService
             output.Clear();
             return;
         }
-
-        ListProcesses(processes);
-        UpdateProcessData();
-
         output.Clear();
+        messageWriter.Write($"Tick: {tick++} TicksPerUpdate: {ticksPerUpdate}");
+    }
+
+    private void OutputDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        try
+        {
+            if (e is not null && e.Data is not null)
+            {
+                output.AppendLine(e.Data);
+                return;
+            }
+            Console.ResetColor();
+            Console.Clear();
+
+            var json = output.ToString();
+            var processes = new List<WMIObject>();
+            var elements = JsonConvert.DeserializeObject<List<WMIObject>>(json);
+            if (elements is not null)
+                processes = elements.Where(p => p.Name is not null && p.Name.Contains("python#"))
+                    .ToList();
+            ListProcesses(processes);
+            UpdateProcessData();
+        }
+        catch(Exception ex)
+        {
+            messageWriter.Write(ex.Message);
+        }
     }
 
     private void UpdateProcessData()
